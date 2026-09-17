@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.models.user import User
-from app.models.membership import Membership
+from app.models.membership import Membership, MembershipStatus
 from app.models.gym import Gym
 from app.schemas.user import (
     UpdateProfileRequest,
@@ -40,7 +40,7 @@ async def get_me(
         .options(selectinload(Membership.membership_plan))
         .where(
             Membership.user_id == current_user.id,
-            Membership.status == "ACTIVE",
+            Membership.status.in_([MembershipStatus.ACTIVE, MembershipStatus.PENDING]),
         )
         .order_by(Membership.joined_at.desc())
     )
@@ -54,9 +54,12 @@ async def get_me(
         if membership.membership_plan:
             plan_respose = MembershipPlanResponse(
                 id=membership.membership_plan.id,
+                gym_id=membership.membership_plan.gym_id,
                 name=membership.membership_plan.name,
                 duration_days=membership.membership_plan.duration_days,
                 price=membership.membership_plan.price,
+                is_active=membership.membership_plan.is_active,
+                created_at=membership.membership_plan.created_at,
             )
         membership_response = MembershipResponse(
             id=membership.id,

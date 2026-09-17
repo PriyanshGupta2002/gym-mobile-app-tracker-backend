@@ -23,18 +23,6 @@ async def create_gym(
             detail="Only gym owners can create a gym.",
         )
 
-    result = await db.execute(
-        select(Gym).where(Gym.owner_id == current_user.id).limit(1)
-    )
-
-    existing_gym = result.scalar_one_or_none()
-
-    if existing_gym:
-        raise HTTPException(
-            status_code=400,
-            detail="You already have a gym.",
-        )
-
     gym = Gym(
         owner_id=current_user.id,
         name=name.strip(),
@@ -111,3 +99,31 @@ async def get_gym_members(
     today_attendance = attendance_result.scalar_one()
 
     return memberships, today_attendance
+
+
+async def update_gym(
+    db: AsyncSession,
+    gym_id: UUID,
+    owner_id: UUID,
+    name: str,
+    city: str,
+) -> Gym:
+    gym = await get_gym_by_owner(
+        db=db,
+        gym_id=gym_id,
+        owner_id=owner_id,
+    )
+
+    if gym is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Gym not found",
+        )
+
+    gym.name = name.strip()
+    gym.city = city.strip()
+
+    await db.commit()
+    await db.refresh(gym)
+
+    return gym

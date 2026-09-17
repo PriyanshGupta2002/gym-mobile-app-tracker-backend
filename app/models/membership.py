@@ -69,7 +69,11 @@ class Membership(Base):
     )
 
     status: Mapped[MembershipStatus] = mapped_column(
-        Enum(MembershipStatus),
+        Enum(
+            MembershipStatus,
+            name="membershipstatus",
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+        ),
         nullable=False,
         default=MembershipStatus.PENDING,
         server_default=MembershipStatus.PENDING.value,
@@ -91,9 +95,12 @@ class Membership(Base):
         nullable=True,
         index=True,
     )
-
     payment_method: Mapped[PaymentMethod | None] = mapped_column(
-        Enum(PaymentMethod),
+        Enum(
+            PaymentMethod,
+            name="paymentmethod",
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+        ),
         nullable=True,
     )
 

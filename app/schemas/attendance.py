@@ -60,3 +60,22 @@ class AttendanceHistoryResponse(BaseModel):
     month_name: str
     total_visits: int
     records: list[AttendanceHistoryItem]
+
+
+class GymAttendanceMemberResponse(BaseModel):
+    id: UUID
+    name: str | None
+    phone: str
+
+
+class GymAttendanceItemResponse(BaseModel):
+    id: UUID
+    checked_in_at: datetime
+    member: GymAttendanceMemberResponse
+
+
+class GymAttendanceResponse(BaseModel):
+    gym_id: UUID
+    date: str
+    total_check_ins: int
+    records: list[GymAttendanceItemResponse]

@@ -4,6 +4,7 @@ from app.models.user import User, UserRole
 from app.models.otp import OTP
 from app.models.attendance import Attendance
 from app.models.membership_plan import MembershipPlan
+from app.models.payment import Payment
 
 __all__ = [
     "User",
@@ -13,4 +14,5 @@ __all__ = [
     "OTP",
     "Attendance",
     "MembershipPlan",
+    "Payment",
 ]

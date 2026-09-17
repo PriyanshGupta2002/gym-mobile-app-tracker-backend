@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from app.db.session import get_db
 from app.schemas.attendance import (
     CheckInRequest,
@@ -9,14 +9,19 @@ from app.schemas.attendance import (
     AttendanceSummaryResponse,
     AttendanceHistoryResponse,
     AttendanceHistoryItem,
+    GymAttendanceItemResponse,
+    GymAttendanceMemberResponse,
+    GymAttendanceResponse,
 )
 from app.services.attendance import (
     check_in_member,
     get_member_attendance_summary,
     get_member_attendance_history,
+    get_gym_attendance,
 )
 from app.api.deps import get_current_user
 from app.models.user import User
+from uuid import UUID
 
 router = APIRouter(
     prefix="/attendance",
@@ -112,4 +117,51 @@ async def get_attendance_history(
             1,
         ).strftime("%B"),
         records=[AttendanceHistoryItem.model_validate(record) for record in records],
+    )
+
+
+@router.get(
+    "/gyms/{gym_id}",
+    response_model=GymAttendanceResponse,
+)
+async def get_gym_attendance_endpoint(
+    gym_id: UUID,
+    attendance_date: date | None = Query(default=None),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    # ---------------------------------------------------------
+    # Default to today
+    # ---------------------------------------------------------
+
+    if attendance_date is None:
+        attendance_date = datetime.now(timezone.utc).date()
+
+    # ---------------------------------------------------------
+    # Service handles gym ownership verification
+    # ---------------------------------------------------------
+
+    records = await get_gym_attendance(
+        db=db,
+        gym_id=gym_id,
+        owner_id=current_user.id,
+        attendance_date=attendance_date,
+    )
+
+    return GymAttendanceResponse(
+        gym_id=gym_id,
+        date=attendance_date.isoformat(),
+        total_check_ins=len(records),
+        records=[
+            GymAttendanceItemResponse(
+                id=record.id,
+                checked_in_at=record.checked_in_at,
+                member=GymAttendanceMemberResponse(
+                    id=record.user.id,
+                    name=record.user.name,
+                    phone=record.user.phone,
+                ),
+            )
+            for record in records
+        ],
     )

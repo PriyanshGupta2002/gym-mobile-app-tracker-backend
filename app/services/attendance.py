@@ -8,6 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.attendance import Attendance
 from app.models.membership import Membership, MembershipStatus
 from calendar import monthrange
+from app.models.gym import Gym
+
+from sqlalchemy.orm import selectinload
 
 WEEKLY_GOAL = 4
 
@@ -313,3 +316,47 @@ async def get_member_attendance_history(
         )
 
     return records
+
+
+async def get_gym_attendance(
+    db: AsyncSession,
+    gym_id: uuid.UUID,
+    owner_id: uuid.UUID,
+    attendance_date: date,
+):
+    # ---------------------------------------------------------
+    # 1. Verify that the gym belongs to the current owner
+    # ---------------------------------------------------------
+
+    gym_result = await db.execute(
+        select(Gym).where(
+            Gym.id == gym_id,
+            Gym.owner_id == owner_id,
+        )
+    )
+
+    gym = gym_result.scalar_one_or_none()
+
+    if not gym:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Gym not found.",
+        )
+
+    # ---------------------------------------------------------
+    # 2. Get attendance records for the selected date
+    # ---------------------------------------------------------
+
+    result = await db.execute(
+        select(Attendance)
+        .options(
+            selectinload(Attendance.user),
+        )
+        .where(
+            Attendance.gym_id == gym_id,
+            Attendance.attendance_date == attendance_date,
+        )
+        .order_by(Attendance.checked_in_at.desc())
+    )
+
+    return result.scalars().all()

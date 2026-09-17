@@ -200,7 +200,12 @@ async def get_available_membership_plans(
         select(Membership).where(
             Membership.user_id == current_user.id,
             Membership.gym_id == gym_id,
-            Membership.status == MembershipStatus.ACTIVE,
+            Membership.status.in_(
+                [
+                    MembershipStatus.PENDING,
+                    MembershipStatus.ACTIVE,
+                ]
+            ),
         )
     )
     membership = membership_result.scalar_one_or_none()

@@ -7,11 +7,11 @@ from app.models.user import User
 from app.schemas.gym import (
     CreateGymRequest,
     GymResponse,
-    GymMemberResponse,
+    UpdateGymRequest,
     GymMembersResponse,
     GymMemberWithMembershipResponse,
 )
-from app.services.gym import create_gym, get_gym_by_owner, get_gym_members
+from app.services.gym import create_gym, get_gym_by_owner, get_gym_members, update_gym
 
 router = APIRouter(
     prefix="/gyms",
@@ -99,4 +99,29 @@ async def get_members_for_gym(
         total=len(members),
         today_attendance=today_attendance,
         members=members,
+    )
+
+
+@router.patch(
+    "/{gym_id}",
+    response_model=GymResponse,
+)
+async def update_gym_endpoint(
+    gym_id: UUID,
+    request: UpdateGymRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    gym = await update_gym(
+        db=db,
+        gym_id=gym_id,
+        owner_id=current_user.id,
+        name=request.name,
+        city=request.city,
+    )
+
+    return GymResponse(
+        id=gym.id,
+        name=gym.name,
+        city=gym.city,
     )

@@ -36,3 +36,8 @@ class GymMembersResponse(BaseModel):
     total: int
     members: list[GymMemberWithMembershipResponse]
     today_attendance: int
+
+
+class UpdateGymRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=150)
+    city: str = Field(..., min_length=1, max_length=100)
