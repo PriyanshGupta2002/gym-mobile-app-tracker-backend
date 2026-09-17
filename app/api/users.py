@@ -14,6 +14,7 @@ from app.schemas.user import (
     MembershipResponse,
     GymResponse,
 )
+from app.schemas.membership_plan import MembershipPlanResponse
 
 router = APIRouter(
     prefix="/users",
@@ -36,6 +37,7 @@ async def get_me(
     result = await db.execute(
         select(Membership)
         .options(selectinload(Membership.gym))
+        .options(selectinload(Membership.membership_plan))
         .where(
             Membership.user_id == current_user.id,
             Membership.status == "ACTIVE",
@@ -48,6 +50,14 @@ async def get_me(
     membership_response = None
 
     if membership:
+        plan_respose = None
+        if membership.membership_plan:
+            plan_respose = MembershipPlanResponse(
+                id=membership.membership_plan.id,
+                name=membership.membership_plan.name,
+                duration_days=membership.membership_plan.duration_days,
+                price=membership.membership_plan.price,
+            )
         membership_response = MembershipResponse(
             id=membership.id,
             status=membership.status,
@@ -57,6 +67,11 @@ async def get_me(
                 name=membership.gym.name,
                 city=membership.gym.city,
             ),
+            plan=plan_respose,
+            starts_at=membership.starts_at,
+            expires_at=membership.expires_at,
+            payment_method=membership.payment_method,
+            amount_paid=membership.amount_paid,
         )
 
     # -----------------------------------------

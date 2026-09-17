@@ -6,6 +6,7 @@ from app.api.gym import router as gym_router
 from app.api.location import router as location_router
 from app.api.membership import router as membership_router
 from app.api.attendance import router as attendance_router
+from app.api.membership_plan import router as membership_plan_router
 
 app = FastAPI(
     title="GymApp API",
@@ -26,6 +27,7 @@ app.include_router(gym_router)
 app.include_router(location_router)
 app.include_router(membership_router)
 app.include_router(attendance_router)
+app.include_router(membership_plan_router)
 
 
 @app.get("/health")

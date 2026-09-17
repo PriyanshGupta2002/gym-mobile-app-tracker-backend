@@ -6,7 +6,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.attendance import Attendance
-from app.models.membership import Membership
+from app.models.membership import Membership, MembershipStatus
 from calendar import monthrange
 
 WEEKLY_GOAL = 4
@@ -27,7 +27,7 @@ async def check_in_member(
         select(Membership).where(
             Membership.user_id == user_id,
             Membership.gym_id == gym_id,
-            Membership.status == "ACTIVE",
+            Membership.status == MembershipStatus.ACTIVE,
         )
     )
 

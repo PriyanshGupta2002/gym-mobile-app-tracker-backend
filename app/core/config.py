@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     OTP_MAX_SENDS: int = 5
     OTP_SEND_WINDOW_MINUTES: int = 30
     RAPIDAPI_KEY: str
+    RAZORPAY_KEY_ID: str
+    RAZORPAY_KEY_SECRET: str
 
     model_config = SettingsConfigDict(
         env_file=".env",

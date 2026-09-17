@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from app.models.membership import Membership
     from app.models.user import User
     from app.models.attendance import Attendance
+    from app.models.membership_plan import MembershipPlan
 
 
 class Gym(Base):
@@ -61,4 +62,8 @@ class Gym(Base):
     # Attendance of the gym
     attendances: Mapped[list["Attendance"]] = relationship(
         back_populates="gym", cascade="all, delete-orphan"
+    )
+    membership_plans: Mapped[list["MembershipPlan"]] = relationship(
+        back_populates="gym",
+        cascade="all, delete-orphan",
     )
